@@ -213,6 +213,12 @@ export default function WalletBar() {
                         if (!files) {
                           return false;
                         }
+
+                        const fileType = files[0].type;
+                        if (!fileType.startsWith('image/')) {
+                          alert("Please select a valid image");
+                          return;
+                        }
                         // Create a new FormData object
                         var formData = new FormData();
                         formData.append("file", files[0]);

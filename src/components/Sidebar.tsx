@@ -377,6 +377,12 @@ export default function Sidebar() {
                           alert("Max file size is 12mb");
                           return false;
                         }
+
+                        const fileType = files[0].type;
+                        if (!fileType.startsWith('audio/')) {
+                          alert("Please select a valid audio file");
+                          return;
+                        }
                         // Create a new FormData object
                         var formData = new FormData();
                         formData.append("file", files[0]);
