@@ -6,7 +6,7 @@ import { TSong } from "./song.dto";
 
 export type TPlaylistLogs = {
     is_initialized: boolean;
-    list: PublicKey[];
+    list: string[];
     owner: PublicKey;
 }
 

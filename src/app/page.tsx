@@ -24,7 +24,7 @@ export default function Home() {
   const { currentPlaylist, setPlaylist } = usePlaylist();
   const [songs, setSongs] = useState<TSongWithList[]>([]);
   const [artist, setArtist] = useState<TArtistAccount>();
-  const [artistKey, setArtistKey] = useState<PublicKey | null>();
+  const [artistKey, setArtistKey] = useState<PublicKey | null>(null);
   const [isHome, setHome] = useState(true);
   const [songsLoading, setSongsLoading] = useState(false);
   const [debouncedValue, setDebouncedValue] = useState("");
@@ -100,6 +100,12 @@ export default function Home() {
       return false;
     }
     let infoData = SongInfoModel.deserialize(account.data);
+    if (!infoData?.start) {
+      setSongs([]);
+      setSongsLoading(false);
+      setArtist(undefined);
+      return false;
+    }
 
     const accountList = await connection.getAccountInfo(infoData?.start);
     if (!accountList) {
@@ -146,7 +152,7 @@ export default function Home() {
               onChange={(event) => handleChange(event.target.value)}
             />
             <Description className="text-sm/6 text-white/50">
-              Search by artist's wallet address
+              Search by artist&apos;s wallet address
             </Description>
           </Field>
         </div>

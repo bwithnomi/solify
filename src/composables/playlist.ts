@@ -111,7 +111,7 @@ export class Playlist {
         return instruction;
     }
 
-    public async getAllPlaylists(pubKey: PublicKey): Promise<PublicKey[] | never[]> {
+    public async getAllPlaylists(pubKey: PublicKey): Promise<string[] | never[]> {
         try {
             const ownerPDA = await PDA.getOwnerPDA(pubKey);
             const logsPDA = await PDA.getPlaylistLogsPDA(ownerPDA);

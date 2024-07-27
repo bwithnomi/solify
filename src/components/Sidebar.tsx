@@ -72,6 +72,9 @@ export default function Sidebar() {
   }
 
   const uploadNewSong = async (songToUpload: FormValues) => {
+    if (!publicKey) {
+      return null
+    }
     const ownerPDA = await PDA.getOwnerPDA(publicKey);
     const songInfoPDA = await PDA.getSongInfoPDA(ownerPDA);
     let accountInfo = await connection.getAccountInfo(songInfoPDA);
@@ -109,12 +112,18 @@ export default function Sidebar() {
   };
 
   const getAllPlaylists = async () => {
+    if (!publicKey) {
+      return null
+    }
     let data = await playlistService.getAllPlaylists(publicKey);
     setAllPlaylist(data);
   };
 
   const createFirstPlaylist = async (name: string) => {
     try {
+      if (!publicKey) {
+        return null
+      }
       const transaction = new Transaction();
       const instruction = await playlistService.createPlaylistInstruction(
         publicKey,
@@ -150,7 +159,7 @@ export default function Sidebar() {
   };
 
   const loadPlaylist = async (playlist_title: string) => {
-    if (playlist_title != currentPlaylist?.name) {
+    if (publicKey && playlist_title != currentPlaylist?.name) {
       const ownerPda = await PDA.getOwnerPDA(publicKey);
       const playlistPDA = await PDA.getPlaylistPDA(ownerPda, playlist_title);
       const playlist = await playlistService.getPlaylistData(playlistPDA);
@@ -160,6 +169,9 @@ export default function Sidebar() {
 
   const deletePlaylist = async (playlist: string) => {
     try {
+      if (!publicKey) {
+        return null
+      }
       const transaction = new Transaction();
 
       const instruction = await playlistService.deletePlaylistInstruction(
@@ -197,7 +209,7 @@ export default function Sidebar() {
   };
   useEffect(() => {
     setIsMounted(true);
-    if (connected) {
+    if (connected && publicKey) {
       artistService.fetchArtist(publicKey, connection).then((data) => {
         setArtist(data);
       })
@@ -460,7 +472,7 @@ export default function Sidebar() {
                   Create you first playlist
                 </p>
                 <p className="text-white text-sm my-1">
-                  It's easy, we'll help you
+                  It&apos;s easy, we&apos;ll help you
                 </p>
 
                 <Button
