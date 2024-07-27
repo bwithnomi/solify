@@ -1,8 +1,15 @@
 "use client";
 
+import {
+  Transaction,
+} from "@solana/web3.js";
 import Image from "next/image";
+import { toast } from "react-toastify";
 import { TPlaylist } from "@/dtos/playlist.dto";
 import { useSongPlayer } from "@/context/SongPlayerContext";
+import { TSong } from "@/dtos/song.dto";
+import { Playlist as PlaylistService } from "@/composables/playlist";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 
 interface playlistProps {
   currentPlaylist: TPlaylist;
@@ -25,12 +32,61 @@ const bgClasses = [
 
 const Playlist = (props: playlistProps) => {
   const { playSong } = useSongPlayer();
-  const bgClass = bgClasses[Math.floor(Math.random() * bgClasses.length)]
+  const { publicKey, sendTransaction } = useWallet();
+  const { connection } = useConnection();
+
+  const deleteSong = async (song: TSong) => {
+    try {
+      const playlistService = new PlaylistService(connection);
+
+      const transaction = new Transaction();
+
+      const instruction = await playlistService.deleteSongFromPlaylist(
+        song,
+        props.currentPlaylist.name,
+        publicKey
+      );
+
+      transaction.add(instruction);
+      let txid = await sendTransaction(transaction, connection);
+
+      toast("🦄 Song Removed", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+
+      props.currentPlaylist.songs = props.currentPlaylist.songs.filter(
+        (a) => a.songs.name != song.name
+      );
+    } catch (error) {
+      toast.error("Error sending transaction", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+    }
+  };
+  const bgClass = bgClasses[Math.floor(Math.random() * bgClasses.length)];
   return (
-    <div className={`${bgClass} bg-gradient-to-b from-purple-600 to-black py-10 px-5 rounded-t-3xl h-full`} >
+    <div
+      className={`${bgClass} bg-gradient-to-b from-purple-600 to-black py-10 px-5 rounded-t-3xl h-full`}
+    >
       <div className="">
         <div className="flex flex-row gap-3">
-          <div className={`${bgClass} bg-gradient-to-b  to-black px-2 py-2 rounded-lg`}>
+          <div
+            className={`${bgClass} bg-gradient-to-b  to-black px-2 py-2 rounded-lg`}
+          >
             <Image
               width="80"
               height="0"
@@ -80,6 +136,19 @@ const Playlist = (props: playlistProps) => {
                         src={`/icons/play-dark.svg`}
                         alt="play"
                       ></Image>
+                    </button>
+                  </td>
+                  <td className="text-white px-3 py-1">
+                    <button
+                      className="bg-white text-black px-2 py-2 rounded-full text-xs"
+                      onClick={() => deleteSong(item.songs)}
+                    >
+                      <Image
+                        width="10"
+                        height="20"
+                        src={`/icons/delete.svg`}
+                        alt="upload"
+                      />
                     </button>
                   </td>
                 </tr>

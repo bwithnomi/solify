@@ -1,19 +1,16 @@
 "use client";
 
-import {
-  WalletMultiButton,
-} from "@solana/wallet-adapter-react-ui";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Button, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import * as web3 from "@solana/web3.js";
 import { useEffect, useState } from "react";
 import { Ownership } from "@/models/ownership";
-import { Artist as ArtistModel } from "@/models/artist";
+import { toast } from "react-toastify";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 import PinataService from "@/composables/pinata";
 import { TArtistAccount } from "@/dtos/artist.dto";
-import { Song } from "@/composables/song";
 import { PDA } from "@/composables/address";
 import { Artist } from "@/composables/artist";
 
@@ -31,10 +28,7 @@ interface FormValues {
   image: any;
 }
 
-
 export default function WalletBar() {
-  const ownership = new Ownership();
-  const artist = new ArtistModel();
   const pinataService = new PinataService();
   const initialValues: FormValues = { name: "", description: "", image: "" };
   const { connected, publicKey, sendTransaction } = useWallet();
@@ -42,11 +36,8 @@ export default function WalletBar() {
   const artistService = new Artist(connection);
   const [isMounted, setIsMounted] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
-  const [hasOwnership, setHasOwnership] = useState(false);
-  const [ownerPDA, setOwnerPDA] = useState("");
-  const [artistPDA, setArtistPDA] = useState("");
   let [isOpen, setIsOpen] = useState(false);
-  const [userProfile, setUserProfile] = useState<TArtistAccount>();
+  const [userProfile, setUserProfile] = useState<TArtistAccount | null>(null);
 
   function open() {
     setIsOpen(true);
@@ -61,35 +52,19 @@ export default function WalletBar() {
       alert("Please connect your wallet!");
       return () => {};
     }
-    const pda = await PDA.getOwnerPDA(publicKey);
-    
-    setOwnerPDA(pda.toString());
-    
-    const account = await connection.getAccountInfo(pda);
-    const ownerAccount = Ownership.deserialize(account?.data);
+
+    const ownerAccount = await artistService.fetchOwner(publicKey, connection);
 
     if (ownerAccount?.is_initialized) {
-      checkProfile(pda);
-      setHasOwnership(account?.data[0]);
+      checkProfile();
     }
     if (ownerAccount?.verified) {
-      setIsVerified(account?.data);
+      setIsVerified(ownerAccount.verified);
     }
   };
 
-  const checkProfile = async (ownerPda: web3.PublicKey) => {
-    if (!publicKey) {
-      alert("Please connect your wallet!");
-      return () => {};
-    }
-    const pda = await PDA.getArtistPDA(ownerPda);
-    setArtistPDA(pda.toString());
-    
-    const account = await connection.getAccountInfo(pda);
-    const artistAccount = ArtistModel.deserialize(account.data);
-    if (artistAccount) {
-      setUserProfile(artistAccount);
-    }
+  const checkProfile = async () => {
+    setUserProfile(await artistService.fetchArtist(publicKey, connection));
   };
 
   const getOwnershipToken = async (
@@ -98,19 +73,45 @@ export default function WalletBar() {
     description: string
   ) => {
     try {
-      const ownershipInstruction = await artistService.createOwnershipInstruction(publicKey);
-      const artistInstruction = await artistService.addArtistInstruction(publicKey, name, image, description);
+      const ownershipInstruction =
+        await artistService.createOwnershipInstruction(publicKey);
+      const artistInstruction = await artistService.addArtistInstruction(
+        publicKey,
+        name,
+        image,
+        description
+      );
       const transaction = new web3.Transaction();
       transaction.add(ownershipInstruction);
       transaction.add(artistInstruction);
       let txid = await sendTransaction(transaction, connection);
-      console.log(txid);
-      
+
+
+      toast("🦄 Account created!", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
       setTimeout(() => {
         checkOwnership();
       }, 5000);
     } catch (error) {
-      console.log(error);
+
+      toast("🦄 Error sending transaction", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
     }
   };
 
@@ -135,7 +136,7 @@ export default function WalletBar() {
         <div className="flex flex-row gap-2">
           <WalletMultiButton />
           {connected &&
-            (!hasOwnership ? (
+            (!userProfile ? (
               <Button
                 onClick={open}
                 className="inline-flex items-center gap-2 rounded-md bg-white py-1.5 px-3 text-sm/6 font-semibold text-black shadow-inner shadow-white/10 focus:outline-none data-[hover]:bg-gray-200 data-[open]:bg-gray-200 data-[focus]:outline-1 data-[focus]:outline-white"
@@ -146,12 +147,14 @@ export default function WalletBar() {
               isVerified && (
                 <div className="">
                   <p className="text-white font-serif font-bold">
-                  <p className="text-ellipsis overflow-hidden w-52">{userProfile?.name}</p>&nbsp;
+                    <span className="text-ellipsis overflow-hidden w-52 block">
+                      {userProfile?.name}
+                    </span>
+                    &nbsp;
                     <span className="text-white bg-green-500 px-2 py-1 rounded-full text-xs font-sans font-bold">
                       {isVerified ? "Verified" : "Not Verified"}
                     </span>
                   </p>
-                  {/* <p className="text-sm text-white">{userProfile?.description}</p> */}
                 </div>
               )
             ))}

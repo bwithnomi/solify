@@ -1,14 +1,7 @@
 "use client";
 
 import {
-  Connection,
-  Keypair,
-  LAMPORTS_PER_SOL,
-  sendAndConfirmTransaction,
-  SystemProgram,
   Transaction,
-  TransactionInstruction,
-  PublicKey,
 } from "@solana/web3.js";
 import { Button, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
@@ -20,14 +13,10 @@ import { Song } from "@/composables/song";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { PDA } from "@/composables/address";
 import { SongInfo as SongInfoModel } from "@/models/songInfo";
-import { SongList as SongListModel } from "@/models/songList";
-import { Song as SongModel } from "@/models/song";
 import PinataService from "@/composables/pinata";
 import { Playlist } from "@/composables/playlist";
-import { TSong } from "@/dtos/song.dto";
 import { usePlaylist } from "@/context/PlaylistContext";
 import { toast } from "react-toastify";
-import { TPlaylist } from "@/dtos/playlist.dto";
 import { TArtistAccount } from "@/dtos/artist.dto";
 import { Artist as ArtistService } from "@/composables/artist";
 
@@ -57,7 +46,6 @@ export default function Sidebar() {
   const { currentPlaylist, setPlaylist, setAllPlaylist, allPlaylists } = usePlaylist();
   const { connection } = useConnection();
   const pinataService = new PinataService();
-  const songService = new Song(connection);
   const artistService = new ArtistService(connection);
   const playlistService = new Playlist(connection);
   const initialValues: FormValues = { name: "", song: "" };
@@ -173,7 +161,6 @@ export default function Sidebar() {
   const deletePlaylist = async (playlist: string) => {
     try {
       const transaction = new Transaction();
-      console.log(playlist);
 
       const instruction = await playlistService.deletePlaylistInstruction(
         publicKey,

@@ -191,4 +191,43 @@ export class Playlist {
 
         return instruction;
     }
+
+    public async deleteSongFromPlaylist(song: TSong, playlist: string, pubKey: PublicKey): Promise<TransactionInstruction> {
+        const ownerPDA = await PDA.getOwnerPDA(pubKey);
+        const playlistPDA = await PDA.getPlaylistPDA(ownerPDA, playlist);
+        
+        const playlistModel = new PlaylistModel();
+        const buffer = playlistModel.deleteSongSerialize(song.name, playlist);
+        
+        const instruction = new TransactionInstruction({
+            keys: [
+                {
+                    pubkey: new PublicKey(pubKey),
+                    isSigner: true,
+                    isWritable: false,
+                },
+                {
+                    pubkey: ownerPDA,
+                    isSigner: false,
+                    isWritable: true,
+                },
+                {
+                    pubkey: playlistPDA,
+                    isSigner: false,
+                    isWritable: true,
+                },
+                {
+                    pubkey: SystemProgram.programId,
+                    isSigner: false,
+                    isWritable: false,
+                },
+            ],
+            data: buffer,
+            programId: new PublicKey(
+                process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID
+            ),
+        });
+
+        return instruction;
+    }
 }

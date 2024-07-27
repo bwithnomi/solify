@@ -52,6 +52,12 @@ export class Playlist {
         return buffer.slice(0, this.borshAddSongInstructionSchema.getSpan(buffer))
     }
 
+    deleteSongSerialize(name: string, playlist: string): Buffer {
+        const buffer = Buffer.alloc(1000)
+        this.borshAddSongInstructionSchema.encode({ ...this, variant: 7, name, playlist }, buffer)
+        return buffer.slice(0, this.borshAddSongInstructionSchema.getSpan(buffer))
+    }
+
     deleteSerialize(name: string): Buffer {
         const buffer = Buffer.alloc(1000)
         this.borshInstructionSchema.encode({ ...this, variant: 5, name }, buffer)

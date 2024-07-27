@@ -3,26 +3,16 @@
 import _ from "lodash";
 import { Description, Field, Input, Label } from "@headlessui/react";
 import clsx from "clsx";
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { ToastContainer, toast } from "react-toastify";
+import { useState, useCallback, useEffect } from "react";
 import {
-  Connection,
-  Keypair,
-  LAMPORTS_PER_SOL,
-  sendAndConfirmTransaction,
-  SystemProgram,
-  Transaction,
-  TransactionInstruction,
   PublicKey,
 } from "@solana/web3.js";
 import { PDA } from "@/composables/address";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { useConnection } from "@solana/wallet-adapter-react";
 import { SongInfo as SongInfoModel } from "@/models/songInfo";
 import { SongList as SongListModel } from "@/models/songList";
-import { TSong, TSongWithList } from "@/dtos/song.dto";
-import { useSongPlayer } from "@/context/SongPlayerContext";
+import { TSongWithList } from "@/dtos/song.dto";
 import { TArtistAccount } from "@/dtos/artist.dto";
-import Image from "next/image";
 import { Artist as ArtistModel } from "@/models/artist";
 import { usePlaylist } from "@/context/PlaylistContext";
 import WalletBar from "@/components/WalletBar";
@@ -31,22 +21,14 @@ import ArtistCard from "@/components/ArtistCard";
 import SongList from "@/components/ArtistSongsList";
 
 export default function Home() {
-  const { playSong } = useSongPlayer();
   const { currentPlaylist, setPlaylist } = usePlaylist();
   const [songs, setSongs] = useState<TSongWithList[]>([]);
   const [artist, setArtist] = useState<TArtistAccount>();
   const [artistKey, setArtistKey] = useState<PublicKey | null>();
   const [isHome, setHome] = useState(true);
   const [songsLoading, setSongsLoading] = useState(false);
-  const { connected, publicKey, sendTransaction } = useWallet();
   const [debouncedValue, setDebouncedValue] = useState("");
   const { connection } = useConnection();
-  const hasSongs = useMemo(() => {
-    if (songs.length > 0) {
-      return true;
-    }
-    return false;
-  }, [songs]);
 
   const handleChange = (value: string) => {
     // setInputValue(value);

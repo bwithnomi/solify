@@ -1,22 +1,16 @@
 import { useSongPlayer } from "@/context/SongPlayerContext";
 import { TArtistAccount } from "@/dtos/artist.dto";
-import { TSong, TSongWithList } from "@/dtos/song.dto";
+import { TSongWithList } from "@/dtos/song.dto";
 import Image from "next/image";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { Button, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
+import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { usePlaylist } from "@/context/PlaylistContext";
 import { useState } from "react";
 import { Playlist } from "@/composables/playlist";
 import { toast } from "react-toastify";
 import {
-  Connection,
-  Keypair,
-  LAMPORTS_PER_SOL,
-  sendAndConfirmTransaction,
-  SystemProgram,
-  Transaction,
-  TransactionInstruction,
   PublicKey,
+  Transaction
 } from "@solana/web3.js";
 
 interface SongsList {
@@ -29,7 +23,7 @@ interface SongsList {
 const SongList = ({ songs, artist, artistKey,searchedWallet }: SongsList) => {
   const { playSong } = useSongPlayer();
   const { allPlaylists } = usePlaylist();
-  const { connected, publicKey, sendTransaction } = useWallet();
+  const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
   const playlistService = new Playlist(connection);
   let [isOpen, setIsOpen] = useState(false);

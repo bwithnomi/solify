@@ -140,7 +140,7 @@ export default function SongInfo() {
   return (
     <div className="flex flex-row">
       <div className="basis-1/3 flex flex-row gap-2">
-        <div className="rounded-md overflow-hidden w-14">
+        <div className="rounded-full w-14 h-14 overflow-hidden object-cover">
           <img
             width="56"
             height="56"
@@ -152,6 +152,7 @@ export default function SongInfo() {
                 event.currentTarget.src = "/images/record.png"
               }
             }}
+            className="object-cover"
           />
         </div>
         <div className="basis-2/3 flex flex-col justify-center">
