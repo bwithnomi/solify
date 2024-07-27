@@ -30,6 +30,7 @@ const predefinedArtist = [
   "6ECzUiHVhJ84B3Hq3PmnoE7w8dXUYSmZknqDahqaALF2",
   "8zKKSM3yAwT8e1CzRrN7aWVhxKd8hncsGmW573grbpcT",
   "3nEWZzdhnVWw8Yj4ivJhWn98PB3jYMvJpC3bTTKpE9dN",
+  "2eB6JWKhC4xynfTkcNmH2qWP1gR9hXx1Jsv2cY4YorkQ"
 ];
 
 export default function Home() {
@@ -208,7 +209,10 @@ export default function Home() {
 
           <div className="flex flex-row gap-2">
             {featuredArtists.map((a, index) => (
-              <div className="bg-neutral-700 px-4 py-4 rounded-md cursor-pointer" onClick={() => fetchSongs(predefinedArtist[index])} key={index}>
+              <div className="bg-neutral-700 px-4 py-4 rounded-md cursor-pointer" onClick={() => {
+                fetchSongs(predefinedArtist[index]);
+                setDebouncedValue(predefinedArtist[index])
+              }} key={index}>
                 <div className="rounded-full inline-block w-40 h-40 overflow-hidden object-cover">
                   <img
                     src={a?.image || "/images/record.png"}
