@@ -30,7 +30,7 @@ const predefinedArtist = [
   "6ECzUiHVhJ84B3Hq3PmnoE7w8dXUYSmZknqDahqaALF2",
   "8zKKSM3yAwT8e1CzRrN7aWVhxKd8hncsGmW573grbpcT",
   "3nEWZzdhnVWw8Yj4ivJhWn98PB3jYMvJpC3bTTKpE9dN",
-  "2eB6JWKhC4xynfTkcNmH2qWP1gR9hXx1Jsv2cY4YorkQ"
+  "2eB6JWKhC4xynfTkcNmH2qWP1gR9hXx1Jsv2cY4YorkQ",
 ];
 
 export default function Home() {
@@ -66,7 +66,6 @@ export default function Home() {
       if (artist) {
         tempArray.push(artist);
       }
-      
     }
 
     setFeaturedArtists(tempArray);
@@ -198,21 +197,45 @@ export default function Home() {
           </Field>
         </div>
       </div>
+      <div className="mt-5 flex flex-row gap-2">
+        <button
+          className="text-white bg-neutral-600 px-3 py-1 rounded-md text-sm"
+          onClick={() => {
+            setArtist(undefined);
+            setSongs([]);
+            setPlaylist(null);
+            setDebouncedValue("");
+            setHome(true)
+          }}
+        >
+          Home
+        </button>
+        {publicKey && (
+          <button
+            className="text-white bg-neutral-600 px-3 py-1 rounded-md text-sm"
+            onClick={() => {
+              fetchSongs(publicKey.toString());
+              setDebouncedValue(publicKey.toString());
+            }}
+          >
+            My Profile
+          </button>
+        )}
+      </div>
       {isHome ? (
-        <div className="mt-10">
-          <p className="text-white text-center font-bold bg-neutral-500 rounded-md py-2 ">
-            Select from playlist or search an artist
-          </p>
-          <p className="text-white text-lg font-bold mt-5 mb-2">
-            Featured Artist
-          </p>
+        <div className="mt-8">
+          <p className="text-white text-lg font-bold mb-2">Featured Artist</p>
 
           <div className="flex flex-row gap-2">
             {featuredArtists.map((a, index) => (
-              <div className="bg-neutral-700 px-4 py-4 rounded-md cursor-pointer" onClick={() => {
-                fetchSongs(predefinedArtist[index]);
-                setDebouncedValue(predefinedArtist[index])
-              }} key={index}>
+              <div
+                className="bg-neutral-700 px-4 py-4 rounded-md cursor-pointer"
+                onClick={() => {
+                  fetchSongs(predefinedArtist[index]);
+                  setDebouncedValue(predefinedArtist[index]);
+                }}
+                key={index}
+              >
                 <div className="rounded-full inline-block w-40 h-40 overflow-hidden object-cover">
                   <img
                     src={a?.image || "/images/record.png"}
