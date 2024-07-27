@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import { CSSProperties } from "react";
 import { useSongPlayer } from "@/context/SongPlayerContext";
+import { CSSProperties } from "react";
+
 import React, {
   ChangeEvent,
   useEffect,
@@ -45,6 +46,30 @@ export default function SongInfo() {
     return event;
   };
 
+  const addInterval = () => {
+    const resumeAudio = isPlaying;
+    if (audioRef.current && audioRef.current.currentTime < audioRef.current.duration) {
+      stopAudio();
+      audioRef.current.currentTime = audioRef.current.currentTime + 10;
+      if (resumeAudio) {
+        playAudio();
+      }
+    } else {
+      
+    }
+  };
+
+  const decreaseInterval = () => {
+    const resumeAudio = isPlaying;
+    if (audioRef.current && audioRef.current.currentTime > 0) {
+      stopAudio();
+      audioRef.current.currentTime = audioRef.current.currentTime < 10 ? 0 : audioRef.current.currentTime - 10;
+      if (resumeAudio) {
+        playAudio();
+      }
+    }
+  };
+
   const changeVolume = (event: ChangeEvent<HTMLInputElement>) => {
     if (audioRef.current) {
       audioRef.current.volume = parseFloat(event.target.value) / 100;
@@ -52,6 +77,16 @@ export default function SongInfo() {
     }
     return event;
   };
+
+  const muteAndUnmute = (action: number) => {
+    if (audioRef.current) {
+      console.log(audioRef.current.volume);
+      audioRef.current.volume = action == 0 ? 0 : 0.1;
+      console.log(audioRef.current.volume);
+      
+      setAudioVolume(action * 10);
+    }
+  }
 
   const toggleAudio = () => {
     if (!isPlaying) {
@@ -147,7 +182,7 @@ export default function SongInfo() {
             onError={() => {
               const target = event?.currentTarget as HTMLImageElement;
               if (target) {
-                target.src = "/icons/profile.svg";
+                target.src = "/images/record.svg";
               }
             }}
             className="object-cover"
@@ -169,7 +204,8 @@ export default function SongInfo() {
             <source src={currentSong?.url} type="audio/mpeg" />
             Your browser does not support the audio element.
           </audio>
-          <div className="flex flex-row justify-center h-5">
+          <div className="flex flex-row justify-center h-5 gap-8 items-center">
+            <span className="text-white text-xs cursor-pointer font-bold font-mono" onClick={decreaseInterval}>10-</span>
             {isPlaying ? (
               <Image
                 width="15"
@@ -187,9 +223,12 @@ export default function SongInfo() {
                 onClick={playAudio}
               ></Image>
             )}
+            <span className="text-white text-xs cursor-pointer font-bold font-mono" onClick={addInterval}>+10</span>
           </div>
           <div className="flex flex-row items-center gap-2">
-            <p className="text-white text-xs">{currentProgress}</p>
+            <p className="text-white text-xs w-10 text-center">
+              {currentProgress}
+            </p>
             <input
               className="text-red-100 w-96"
               type="range"
@@ -199,7 +238,7 @@ export default function SongInfo() {
               max={duration}
               onChange={changeProgress}
             />
-            <p className="text-white text-xs">{audioLength}</p>
+            <p className="text-white text-xs w-10 text-center">{audioLength}</p>
           </div>
         </div>
       ) : (
@@ -209,6 +248,51 @@ export default function SongInfo() {
       )}
 
       <div className="basis-1/3 flex flex-row justify-end gap-2 items-center">
+        {audioVolume >= 50 && (
+          <button>
+            <Image
+              width="20"
+              height="0"
+              src={`/icons/high-vol.svg`}
+              alt="play"
+              onClick={() => muteAndUnmute(0)}
+            ></Image>
+          </button>
+        )}
+        {audioVolume < 50 && audioVolume >= 20 && (
+          <button>
+            <Image
+              width="15"
+              height="0"
+              src={`/icons/mid-vol.svg`}
+              alt="play"
+              onClick={() => muteAndUnmute(0)}
+            ></Image>
+          </button>
+        )}
+        {audioVolume < 20 && audioVolume >= 1 && (
+          <button>
+            <Image
+              width="10"
+              height="0"
+              src={`/icons/low-vol.svg`}
+              alt="play"
+              onClick={() => muteAndUnmute(0)}
+            ></Image>
+          </button>
+        )}
+        {audioVolume == 0 && (
+          <button>
+            <Image
+              width="20"
+              height="0"
+              src={`/icons/mute.svg`}
+              alt="play"
+              onClick={() => muteAndUnmute(1)}
+            ></Image>
+          </button>
+        )}
+
         <input
           className="text-red-100 w-40"
           type="range"
@@ -219,7 +303,9 @@ export default function SongInfo() {
           max={100}
           onChange={changeVolume}
         />
-        <p className="text-white text-sm self-center">{audioVolume}</p>
+        <p className="text-white text-sm self-center w-10 text-start">
+          {audioVolume}
+        </p>
       </div>
     </div>
   );
