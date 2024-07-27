@@ -121,7 +121,7 @@ export default function Home() {
     if (listData) {
       const temp: TSongWithList[] = listData.songs.map((t) => ({
         ...t,
-        list: new PublicKey(accountList),
+        list: infoData.start,
       }));
       setArtistKey(artistPDA);
       setSongs(temp);
