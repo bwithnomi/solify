@@ -48,14 +48,21 @@ export default function SongInfo() {
 
   const addInterval = () => {
     const resumeAudio = isPlaying;
-    if (audioRef.current && audioRef.current.currentTime < audioRef.current.duration) {
+    if (
+      audioRef.current &&
+      audioRef.current.currentTime + 10 >= audioRef.current.duration
+    ) {
+      stopAudio();
+      audioRef.current.currentTime = audioRef.current.duration;
+    } else if (
+      audioRef.current &&
+      audioRef.current.currentTime < audioRef.current.duration
+    ) {
       stopAudio();
       audioRef.current.currentTime = audioRef.current.currentTime + 10;
       if (resumeAudio) {
         playAudio();
       }
-    } else {
-      
     }
   };
 
@@ -63,7 +70,10 @@ export default function SongInfo() {
     const resumeAudio = isPlaying;
     if (audioRef.current && audioRef.current.currentTime > 0) {
       stopAudio();
-      audioRef.current.currentTime = audioRef.current.currentTime < 10 ? 0 : audioRef.current.currentTime - 10;
+      audioRef.current.currentTime =
+        audioRef.current.currentTime < 10
+          ? 0
+          : audioRef.current.currentTime - 10;
       if (resumeAudio) {
         playAudio();
       }
@@ -83,10 +93,10 @@ export default function SongInfo() {
       console.log(audioRef.current.volume);
       audioRef.current.volume = action == 0 ? 0 : 0.1;
       console.log(audioRef.current.volume);
-      
+
       setAudioVolume(action * 10);
     }
-  }
+  };
 
   const toggleAudio = () => {
     if (!isPlaying) {
@@ -205,7 +215,12 @@ export default function SongInfo() {
             Your browser does not support the audio element.
           </audio>
           <div className="flex flex-row justify-center h-5 gap-8 items-center">
-            <span className="text-white text-xs cursor-pointer font-bold font-mono" onClick={decreaseInterval}>10-</span>
+            <span
+              className="text-white text-xs cursor-pointer font-bold font-mono"
+              onClick={decreaseInterval}
+            >
+              10-
+            </span>
             {isPlaying ? (
               <Image
                 width="15"
@@ -223,7 +238,12 @@ export default function SongInfo() {
                 onClick={playAudio}
               ></Image>
             )}
-            <span className="text-white text-xs cursor-pointer font-bold font-mono" onClick={addInterval}>+10</span>
+            <span
+              className="text-white text-xs cursor-pointer font-bold font-mono"
+              onClick={addInterval}
+            >
+              +10
+            </span>
           </div>
           <div className="flex flex-row items-center gap-2">
             <p className="text-white text-xs w-10 text-center">
