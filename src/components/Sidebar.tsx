@@ -463,7 +463,7 @@ export default function Sidebar() {
             </div>
           </div>
         </div>
-        <div className="card-1 px-4 pt-4 pb-8 bg-neutral-900 rounded-md mt-2 col-span-1 row-span-3 overflow-scroll">
+        <div className="card-1 px-4 pt-4 pb-8 bg-neutral-900 rounded-md mt-2 col-span-1 row-span-3 overflow-y-scroll">
           <div className="">
             <div className="flex flex-row items-center gap-2">
               <Image
