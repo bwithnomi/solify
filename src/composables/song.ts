@@ -13,10 +13,12 @@ import { SongList } from "@/models/songList";
 import { SongInfo as SongInfoModel } from "@/models/songInfo";
 import { Song as SongModel } from "@/models/song";
 
+const contractAddress = process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID || "";
+
 export class Song {
     constructor(private connection: Connection) {
     }
-    public async createSongListInstruction(pubKey: PublicKey): TransactionInstruction {
+    public async createSongListInstruction(pubKey: PublicKey): Promise<TransactionInstruction> {
         const ownerPDA = await PDA.getOwnerPDA(pubKey);
         const songInfoPDA = await PDA.getSongInfoPDA(ownerPDA);
         const account = await this.connection.getAccountInfo(songInfoPDA);
@@ -63,14 +65,14 @@ export class Song {
             ],
             data: buffer,
             programId: new PublicKey(
-                process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID
+                contractAddress
             ),
         });
 
         return instruction;
     }
 
-    public async createAdNewSongInstruction(pubKey: PublicKey, name: string, url: string):TransactionInstruction {
+    public async createAdNewSongInstruction(pubKey: PublicKey, name: string, url: string):Promise<TransactionInstruction> {
         const ownerPDA = await PDA.getOwnerPDA(pubKey);
         const songInfoPDA = await PDA.getSongInfoPDA(ownerPDA);
         const account = await this.connection.getAccountInfo(songInfoPDA);
@@ -123,7 +125,7 @@ export class Song {
             ],
             data: buffer,
             programId: new PublicKey(
-                process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID
+                contractAddress
             ),
         });
 

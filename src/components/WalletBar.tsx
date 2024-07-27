@@ -64,6 +64,9 @@ export default function WalletBar() {
   };
 
   const checkProfile = async () => {
+    if (!publicKey) {
+      return false;
+    }
     setUserProfile(await artistService.fetchArtist(publicKey, connection));
   };
 
@@ -73,6 +76,19 @@ export default function WalletBar() {
     description: string
   ) => {
     try {
+      if (!publicKey) {
+        toast.error("Wallet not connected", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+        return false;
+      }
       const ownershipInstruction =
         await artistService.createOwnershipInstruction(publicKey);
       const artistInstruction = await artistService.addArtistInstruction(
@@ -192,8 +208,11 @@ export default function WalletBar() {
                         values: FormValues,
                         { setSubmitting }
                       ) => {
-                        let input = document.getElementById("image");
+                        let input = document.getElementById("image") as HTMLInputElement;
                         let files = input?.files;
+                        if (!files) {
+                          return false;
+                        }
                         // Create a new FormData object
                         var formData = new FormData();
                         formData.append("file", files[0]);

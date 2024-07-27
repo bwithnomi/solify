@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  Transaction,
-} from "@solana/web3.js";
+import { Transaction } from "@solana/web3.js";
 import { Button, Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
@@ -43,7 +41,8 @@ const validationSchema = Yup.object({
 
 export default function Sidebar() {
   const { connected, publicKey, sendTransaction } = useWallet();
-  const { currentPlaylist, setPlaylist, setAllPlaylist, allPlaylists } = usePlaylist();
+  const { currentPlaylist, setPlaylist, setAllPlaylist, allPlaylists } =
+    usePlaylist();
   const { connection } = useConnection();
   const pinataService = new PinataService();
   const artistService = new ArtistService(connection);
@@ -73,7 +72,17 @@ export default function Sidebar() {
 
   const uploadNewSong = async (songToUpload: FormValues) => {
     if (!publicKey) {
-      return null
+      toast.error("Wallet not connected", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+      return false;
     }
     const ownerPDA = await PDA.getOwnerPDA(publicKey);
     const songInfoPDA = await PDA.getSongInfoPDA(ownerPDA);
@@ -113,7 +122,17 @@ export default function Sidebar() {
 
   const getAllPlaylists = async () => {
     if (!publicKey) {
-      return null
+      toast.error("Wallet not connected", {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "dark",
+      });
+      return false;
     }
     let data = await playlistService.getAllPlaylists(publicKey);
     setAllPlaylist(data);
@@ -122,7 +141,17 @@ export default function Sidebar() {
   const createFirstPlaylist = async (name: string) => {
     try {
       if (!publicKey) {
-        return null
+        toast.error("Wallet not connected", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+        return false;
       }
       const transaction = new Transaction();
       const instruction = await playlistService.createPlaylistInstruction(
@@ -170,7 +199,17 @@ export default function Sidebar() {
   const deletePlaylist = async (playlist: string) => {
     try {
       if (!publicKey) {
-        return null
+        toast.error("Wallet not connected", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+        return false;
       }
       const transaction = new Transaction();
 
@@ -212,7 +251,7 @@ export default function Sidebar() {
     if (connected && publicKey) {
       artistService.fetchArtist(publicKey, connection).then((data) => {
         setArtist(data);
-      })
+      });
       getAllPlaylists();
     }
   }, [connected]);
@@ -329,8 +368,11 @@ export default function Sidebar() {
                         { setSubmitting }
                       ) => {
                         setSubmitting(true);
-                        let input = document.getElementById("image");
-                        let files = input?.files;
+                        let input = document.getElementById("image") as HTMLInputElement;
+                        let files = input.files;
+                        if (!files) {
+                          return false
+                        }
                         if (files[0].size > 12000000) {
                           alert("Max file size is 12mb");
                           return false;

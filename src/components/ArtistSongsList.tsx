@@ -31,7 +31,7 @@ const SongList = ({ songs, artist, artistKey,searchedWallet }: SongsList) => {
 
   const addSongToPlaylist = async (playlist: string) => {
     try {
-      if (itemToAdd) {
+      if (itemToAdd && artistKey && publicKey) {
         const transaction = new Transaction();
         let instruction = await playlistService.addSongToPlaylist(
           itemToAdd,

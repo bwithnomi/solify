@@ -53,7 +53,8 @@ class PinataService {
                 });
             return metadataURI;
         } catch (error) {
-            throw new Error(error);
+            console.log(error);
+            
         }
     }
 
@@ -62,20 +63,21 @@ class PinataService {
      * @param {FormData} formData 
      * @returns {string}
      */
-    async uploadImage(formData) {
+    async uploadImage(formData: FormData) {
         try {
             const apiUrl = `${this.API_URL}/pinFileToIPFS`;
             const ipfsData = await axios.post(apiUrl, formData, {
-                maxBodyLength: "Infinity",
+                maxBodyLength: Infinity,
                 headers: {
-                    "Content-Type": `multipart/form-data; boundary=${formData._boundary}`,
+                    "Content-Type": `multipart/form-data; boundary=${(formData as any)._boundary}`,
                     authorization: `Bearer ${this.JWT}`,
                 },
             });
             const IpfsHash = ipfsData.data.IpfsHash;
             return `${this.URL}/ipfs/${IpfsHash}`;
         } catch (error) {
-            throw new Error(error);
+            console.log(error);
+            return "";
         }
     }
 }

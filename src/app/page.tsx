@@ -107,7 +107,7 @@ export default function Home() {
       return false;
     }
 
-    const accountList = await connection.getAccountInfo(infoData?.start);
+    const accountList = await connection.getAccountInfo(infoData.start);
     if (!accountList) {
       setSongs([]);
       setSongsLoading(false);

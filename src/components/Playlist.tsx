@@ -1,8 +1,6 @@
 "use client";
 
-import {
-  Transaction,
-} from "@solana/web3.js";
+import { Transaction } from "@solana/web3.js";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import { TPlaylist } from "@/dtos/playlist.dto";
@@ -37,6 +35,19 @@ const Playlist = (props: playlistProps) => {
 
   const deleteSong = async (song: TSong) => {
     try {
+      if (!publicKey) {
+        toast.error("Wallet not connected", {
+          position: "top-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "dark",
+        });
+        return false;
+      }
       const playlistService = new PlaylistService(connection);
 
       const transaction = new Transaction();

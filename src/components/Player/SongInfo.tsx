@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import { CSSProperties } from "react";
 import { useSongPlayer } from "@/context/SongPlayerContext";
 import React, {
   ChangeEvent,
@@ -9,7 +10,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-const songInfoImageStyle = {
+const songInfoImageStyle: CSSProperties = {
   objectFit: "cover",
 };
 
@@ -71,10 +72,6 @@ export default function SongInfo() {
     audioRef.current?.play();
     setIsPlaying(true);
   };
-
-  const loadFallbackImage = async (event) => {
-    event.currentTarget.src = "/record.svg";
-  }
 
   useEffect(() => {
     const handleLoadedMetadata = () => {
@@ -148,8 +145,9 @@ export default function SongInfo() {
             alt="record"
             style={songInfoImageStyle}
             onError={() => {
-              if (event?.currentTarget) {
-                event.currentTarget.src = "/images/record.png"
+              const target = event?.currentTarget as HTMLImageElement;
+              if (target) {
+                target.src = "/icons/profile.svg";
               }
             }}
             className="object-cover"

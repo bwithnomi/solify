@@ -6,6 +6,7 @@ import { Ownership as OwnershipModel } from '@/models/ownership'
 import { TOwnerAccount } from '@/dtos/owner.dto'
 import { TArtistAccount } from '@/dtos/artist.dto'
 
+const contractAddress = process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID || "";
 export class Artist {
     constructor(private connection: Connection) {
     }
@@ -14,7 +15,6 @@ export class Artist {
         const ownerPDA = await PDA.getOwnerPDA(pubKey);
         const ownershipModel = new OwnershipModel();
         const buffer = ownershipModel.serialize();
-        console.log(process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID, SystemProgram.programId);
         
         const instruction = new TransactionInstruction({
             keys: [
@@ -36,7 +36,7 @@ export class Artist {
             ],
             data: buffer,
             programId: new PublicKey(
-                process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID
+                contractAddress
             ),
         });
 
@@ -75,7 +75,7 @@ export class Artist {
             ],
             data: buffer,
             programId: new PublicKey(
-                process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID
+                contractAddress
             ),
         });
 
@@ -90,7 +90,7 @@ export class Artist {
     
         if (ownerAccount?.is_initialized) {
             const account = await connection.getAccountInfo(artistPda);
-            const artistAccount = ArtistModel.deserialize(account.data);
+            const artistAccount = ArtistModel.deserialize(account?.data);
             return artistAccount
         }
         return null;

@@ -6,51 +6,53 @@ import {
     PublicKey,
 } from "@solana/web3.js";
 
+const contractAddress = process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID || "";
+
 export class PDA {
-    static async getOwnerPDA(pubkEY: PublicKey): PublicKey {
+    static async getOwnerPDA(pubkEY: PublicKey): Promise<PublicKey> {
         const [pda] = await PublicKey.findProgramAddress(
             [pubkEY.toBuffer(), Buffer.from("ownership")],
-            new PublicKey(process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID)
+            new PublicKey(contractAddress)
         )
         return pda;
     }
 
-    static async getArtistPDA(pubkEY: PublicKey): PublicKey {
+    static async getArtistPDA(pubkEY: PublicKey): Promise<PublicKey> {
         const [pda] = await PublicKey.findProgramAddress(
             [pubkEY.toBuffer(), Buffer.from("artist")],
-            new PublicKey(process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID)
+            new PublicKey(contractAddress)
         )
         return pda;
     }
 
-    static async getSongListPDA(pubkEY: PublicKey,count: string): PublicKey {
+    static async getSongListPDA(pubkEY: PublicKey,count: string): Promise<PublicKey> {
         const [pda] = await PublicKey.findProgramAddress(
             [pubkEY.toBuffer(), Buffer.from("songs_list"), Buffer.from(count)],
-            new PublicKey(process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID)
+            new PublicKey(contractAddress)
         )
         return pda;
     }
 
-    static async getSongInfoPDA(pubkEY: PublicKey): PublicKey {
+    static async getSongInfoPDA(pubkEY: PublicKey): Promise<PublicKey> {
         const [pda] = await PublicKey.findProgramAddress(
             [pubkEY.toBuffer(), Buffer.from("info")],
-            new PublicKey(process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID)
+            new PublicKey(contractAddress)
         )
         return pda;
     }
 
-    static async getPlaylistLogsPDA(pubkEY: PublicKey): PublicKey {
+    static async getPlaylistLogsPDA(pubkEY: PublicKey): Promise<PublicKey> {
         const [pda] = await PublicKey.findProgramAddress(
             [pubkEY.toBuffer(), Buffer.from("playlist_record")],
-            new PublicKey(process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID)
+            new PublicKey(contractAddress)
         )
         return pda;
     }
 
-    static async getPlaylistPDA(pubkEY: PublicKey, name: string): PublicKey {
+    static async getPlaylistPDA(pubkEY: PublicKey, name: string): Promise<PublicKey> {
         const [pda] = await PublicKey.findProgramAddress(
             [pubkEY.toBuffer(), Buffer.from(name)],
-            new PublicKey(process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID)
+            new PublicKey(contractAddress)
         )
         return pda;
     }

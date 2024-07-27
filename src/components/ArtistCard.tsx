@@ -1,9 +1,10 @@
 import { TArtistAccount } from "@/dtos/artist.dto";
+import { CSSProperties } from "react";
 
 interface ArtistProps {
   artist: TArtistAccount;
 }
-const artistImageStyle = {
+const artistImageStyle: CSSProperties = {
   objectFit: "cover",
   borderRadius: "6px",
 };
@@ -20,8 +21,9 @@ const ArtistCard = ({ artist }: ArtistProps) => {
             width="160"
             height="56"
             onError={() => {
-              if (event?.currentTarget) {
-                event.currentTarget.src = "/icons/profile.svg";
+              const target = event?.currentTarget as HTMLImageElement;
+              if (target) {
+                target.src = "/icons/profile.svg";
               }
             }}
             className="object-cover"

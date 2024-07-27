@@ -17,10 +17,12 @@ import { PlaylistLogs } from "@/models/playlistLogs";
 import { TPlaylist } from "@/dtos/playlist.dto";
 import { TArtistAccount } from "@/dtos/artist.dto";
 
+const contractAddress = process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID || "";
+
 export class Playlist {
     constructor(private connection: Connection) {
     }
-    public async createPlaylistInstruction(pubKey: PublicKey, name: string): TransactionInstruction {
+    public async createPlaylistInstruction(pubKey: PublicKey, name: string): Promise<TransactionInstruction> {
         const ownerPDA = await PDA.getOwnerPDA(pubKey);
         const playlistLogsPDA = await PDA.getPlaylistLogsPDA(ownerPDA);
         const playlistPDA = await PDA.getPlaylistPDA(ownerPDA, name);
@@ -58,13 +60,13 @@ export class Playlist {
             ],
             data: buffer,
             programId: new PublicKey(
-                process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID
+                contractAddress
             ),
         });
 
         return instruction;
     }
-    public async deletePlaylistInstruction(pubKey: PublicKey, name: string): TransactionInstruction {
+    public async deletePlaylistInstruction(pubKey: PublicKey, name: string): Promise<TransactionInstruction> {
         console.log(pubKey.toString(), name);
 
         const ownerPDA = await PDA.getOwnerPDA(pubKey);
@@ -104,7 +106,7 @@ export class Playlist {
             ],
             data: buffer,
             programId: new PublicKey(
-                process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID
+                contractAddress
             ),
         });
 
@@ -185,7 +187,7 @@ export class Playlist {
             ],
             data: buffer,
             programId: new PublicKey(
-                process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID
+                contractAddress
             ),
         });
 
@@ -224,7 +226,7 @@ export class Playlist {
             ],
             data: buffer,
             programId: new PublicKey(
-                process.env.NEXT_PUBLIC_ARTIST_PROGRAM_ID
+                contractAddress
             ),
         });
 
