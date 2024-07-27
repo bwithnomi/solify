@@ -1,113 +1,199 @@
+"use client";
+
+import _ from "lodash";
+import { Description, Field, Input, Label } from "@headlessui/react";
+import clsx from "clsx";
+import { useState, useCallback, useEffect, useMemo } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import {
+  Connection,
+  Keypair,
+  LAMPORTS_PER_SOL,
+  sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+  TransactionInstruction,
+  PublicKey,
+} from "@solana/web3.js";
+import { PDA } from "@/composables/address";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { SongInfo as SongInfoModel } from "@/models/songInfo";
+import { SongList as SongListModel } from "@/models/songList";
+import { TSong, TSongWithList } from "@/dtos/song.dto";
+import { useSongPlayer } from "@/context/SongPlayerContext";
+import { TArtistAccount } from "@/dtos/artist.dto";
 import Image from "next/image";
+import { Artist as ArtistModel } from "@/models/artist";
+import { usePlaylist } from "@/context/PlaylistContext";
+import WalletBar from "@/components/WalletBar";
+import Playlist from "@/components/Playlist";
+import ArtistCard from "@/components/ArtistCard";
+import SongList from "@/components/ArtistSongsList";
 
 export default function Home() {
+  const { playSong } = useSongPlayer();
+  const { currentPlaylist, setPlaylist } = usePlaylist();
+  const [songs, setSongs] = useState<TSongWithList[]>([]);
+  const [artist, setArtist] = useState<TArtistAccount>();
+  const [artistKey, setArtistKey] = useState<PublicKey | null>();
+  const [isHome, setHome] = useState(true);
+  const [songsLoading, setSongsLoading] = useState(false);
+  const { connected, publicKey, sendTransaction } = useWallet();
+  const [debouncedValue, setDebouncedValue] = useState("");
+  const { connection } = useConnection();
+  const hasSongs = useMemo(() => {
+    if (songs.length > 0) {
+      return true;
+    }
+    return false;
+  }, [songs]);
+
+  const handleChange = (value: string) => {
+    // setInputValue(value);
+    debouncedChangeHandler(value);
+  };
+
+  // Debounce the input change handler
+  const debouncedChangeHandler = useCallback(
+    _.debounce((value) => {
+      setDebouncedValue(value);
+    }, 1000), // 300ms debounce delay
+    []
+  );
+
+  useEffect(() => {
+    // Cleanup function to cancel debounce if the component unmounts
+    return () => {
+      debouncedChangeHandler.cancel();
+    };
+  }, [debouncedChangeHandler]);
+
+  useEffect(() => {
+    if (debouncedValue == "") {
+      setHome(true);
+      setSongs([]);
+      setArtist(undefined);
+    } else {
+      try {
+        const wallet = new PublicKey(debouncedValue);
+        if (!PublicKey.isOnCurve(wallet)) {
+          alert("Invalid wallet address");
+          setArtist(undefined);
+          setSongs([]);
+          setHome(true);
+        } else {
+          fetchSongs(debouncedValue);
+        }
+      } catch (error) {
+        alert("Invalid wallet address");
+        setArtist(undefined);
+        setSongs([]);
+        setHome(true);
+      }
+    }
+  }, [debouncedValue]);
+
+  useEffect(() => {
+    if (currentPlaylist) {
+      setHome(false);
+    }
+    console.log(currentPlaylist);
+  }, [currentPlaylist]);
+
+  const fetchSongs = async (pubkey: string) => {
+    setHome(false);
+    setPlaylist(null);
+    setSongsLoading(true);
+    const wallet = new PublicKey(pubkey);
+    const ownerPDA = await PDA.getOwnerPDA(wallet);
+    const artistPDA = await PDA.getArtistPDA(ownerPDA);
+    console.log(artistPDA.toString());
+
+    const songInfoPDA = await PDA.getSongInfoPDA(ownerPDA);
+    const account = await connection.getAccountInfo(songInfoPDA);
+    if (!account) {
+      setSongs([]);
+      setSongsLoading(false);
+      setArtist(undefined);
+      return false;
+    }
+    let infoData = SongInfoModel.deserialize(account.data);
+
+    const accountList = await connection.getAccountInfo(infoData?.start);
+    if (!accountList) {
+      setSongs([]);
+      setSongsLoading(false);
+      setArtist(undefined);
+      return false;
+    }
+
+    let listData = SongListModel.deserialize(accountList.data);
+
+    setSongsLoading(false);
+    if (listData) {
+      const temp: TSongWithList[] = listData.songs.map((t) => ({
+        ...t,
+        list: accountList.data,
+      }));
+      setArtistKey(artistPDA);
+      setSongs(temp);
+    }
+
+    const accountArtist = await connection.getAccountInfo(artistPDA);
+    const artist = ArtistModel.deserialize(accountArtist?.data);
+    setArtist(artist || undefined);
+  };
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:size-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
+    <main className="flex min-h-full flex-col py-0 px-4 overflow-scroll">
+      <div className="flex flex-row gap-2">
+        <div className="p-4 bg-neutral-700 rounded-md basis-1/2">
+          <WalletBar />
+        </div>
+        <div className=" basis-1/2">
+          <Field>
+            <Label className="text-sm/6 font-medium text-white">
+              Search here
+            </Label>
+            <Input
+              placeholder="****4d9h"
+              className={clsx(
+                "mt-2 block w-full rounded-lg border-none bg-white/5 py-1.5 px-3 text-sm/6 text-white",
+                "focus:outline-none data-[focus]:outline-2 data-[focus]:-outline-offset-2 data-[focus]:outline-white/25"
+              )}
+              onChange={(event) => handleChange(event.target.value)}
             />
-          </a>
+            <Description className="text-sm/6 text-white/50">
+              Search by artist's wallet address
+            </Description>
+          </Field>
         </div>
       </div>
-
-      <div className="relative z-[-1] flex place-items-center before:absolute before:h-[300px] before:w-full before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 sm:before:w-[480px] sm:after:w-[240px] before:lg:h-[360px]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:w-full lg:max-w-5xl lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Find in-depth information about Next.js features and API.
+      {isHome ? (
+        <div className="mt-10 bg-neutral-500 rounded-md py-2">
+          <p className="text-white text-center font-bold">
+            Select from playlist or search and artist
           </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-sm opacity-50">
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className="mb-3 text-2xl font-semibold">
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className="m-0 max-w-[30ch] text-balance text-sm opacity-50">
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
+        </div>
+      ) : currentPlaylist ? (
+        <div className="mt-10">
+          <Playlist currentPlaylist={currentPlaylist} />
+        </div>
+      ) : (
+        <div className="flex flex-row mt-7 gap-4">
+          {artist && <ArtistCard artist={artist} />}
+          {songsLoading ? (
+            <div className="text-white mt-4">Searching...</div>
+          ) : (
+            <SongList
+              songs={songs}
+              artist={artist}
+              artistKey={artistKey}
+              searchedWallet={debouncedValue}
+            />
+          )}
+        </div>
+      )}
     </main>
   );
 }
