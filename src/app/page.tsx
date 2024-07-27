@@ -1,14 +1,14 @@
 "use client";
 
+import { CSSProperties } from "react";
+
 import _ from "lodash";
 import { Description, Field, Input, Label } from "@headlessui/react";
 import clsx from "clsx";
 import { useState, useCallback, useEffect } from "react";
-import {
-  PublicKey,
-} from "@solana/web3.js";
+import { PublicKey } from "@solana/web3.js";
 import { PDA } from "@/composables/address";
-import { useConnection } from "@solana/wallet-adapter-react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { SongInfo as SongInfoModel } from "@/models/songInfo";
 import { SongList as SongListModel } from "@/models/songList";
 import { TSongWithList } from "@/dtos/song.dto";
@@ -19,9 +19,24 @@ import WalletBar from "@/components/WalletBar";
 import Playlist from "@/components/Playlist";
 import ArtistCard from "@/components/ArtistCard";
 import SongList from "@/components/ArtistSongsList";
+import { Artist } from "@/composables/artist";
+
+const artistImageStyle: CSSProperties = {
+  objectFit: "cover",
+  borderRadius: "6px",
+};
+
+const predefinedArtist = [
+  "6ECzUiHVhJ84B3Hq3PmnoE7w8dXUYSmZknqDahqaALF2",
+  "8zKKSM3yAwT8e1CzRrN7aWVhxKd8hncsGmW573grbpcT",
+  "3nEWZzdhnVWw8Yj4ivJhWn98PB3jYMvJpC3bTTKpE9dN",
+];
 
 export default function Home() {
   const { currentPlaylist, setPlaylist } = usePlaylist();
+  const [featuredArtists, setFeaturedArtists] = useState<
+    TArtistAccount[] | never[]
+  >([]);
   const [songs, setSongs] = useState<TSongWithList[]>([]);
   const [artist, setArtist] = useState<TArtistAccount>();
   const [artistKey, setArtistKey] = useState<PublicKey | null>(null);
@@ -29,12 +44,32 @@ export default function Home() {
   const [songsLoading, setSongsLoading] = useState(false);
   const [debouncedValue, setDebouncedValue] = useState("");
   const { connection } = useConnection();
+  const { publicKey, connected } = useWallet();
+  const artistService = new Artist(connection);
 
   const handleChange = (value: string) => {
     // setInputValue(value);
     debouncedChangeHandler(value);
   };
 
+  const fetchFeaturedArtist = async () => {
+    let tempArray: TArtistAccount[] = [];
+    for (let index = 0; index < predefinedArtist.length; index++) {
+      const element = predefinedArtist[index];
+      let artist = await artistService.fetchArtist(
+        new PublicKey(element),
+        connection
+      );
+      console.log(artist);
+
+      if (artist) {
+        tempArray.push(artist);
+      }
+      
+    }
+
+    setFeaturedArtists(tempArray);
+  };
   // Debounce the input change handler
   const debouncedChangeHandler = useCallback(
     _.debounce((value) => {
@@ -82,6 +117,10 @@ export default function Home() {
     console.log(currentPlaylist);
   }, [currentPlaylist]);
 
+  useEffect(() => {
+    fetchFeaturedArtist();
+  }, []);
+
   const fetchSongs = async (pubkey: string) => {
     setHome(false);
     setPlaylist(null);
@@ -106,7 +145,6 @@ export default function Home() {
       setArtist(undefined);
       return false;
     }
-
     const accountList = await connection.getAccountInfo(infoData.start);
     if (!accountList) {
       setSongs([]);
@@ -116,13 +154,15 @@ export default function Home() {
     }
 
     let listData = SongListModel.deserialize(accountList.data);
+    console.log(accountList);
 
     setSongsLoading(false);
     if (listData) {
       const temp: TSongWithList[] = listData.songs.map((t) => ({
         ...t,
-        list: infoData.start,
+        list: infoData?.start,
       }));
+
       setArtistKey(artistPDA);
       setSongs(temp);
     }
@@ -158,10 +198,37 @@ export default function Home() {
         </div>
       </div>
       {isHome ? (
-        <div className="mt-10 bg-neutral-500 rounded-md py-2">
-          <p className="text-white text-center font-bold">
-            Select from playlist or search and artist
+        <div className="mt-10">
+          <p className="text-white text-center font-bold bg-neutral-500 rounded-md py-2 ">
+            Select from playlist or search an artist
           </p>
+          <p className="text-white text-lg font-bold mt-5 mb-2">
+            Featured Artist
+          </p>
+
+          <div className="flex flex-row gap-2">
+            {featuredArtists.map((a, index) => (
+              <div className="bg-neutral-700 px-4 py-4 rounded-md cursor-pointer" onClick={() => fetchSongs(predefinedArtist[index])} key={index}>
+                <div className="rounded-full inline-block w-40 h-40 overflow-hidden object-cover">
+                  <img
+                    src={a?.image || "/images/record.png"}
+                    alt="artist"
+                    style={artistImageStyle}
+                    width="160"
+                    height="56"
+                    onError={() => {
+                      const target = event?.currentTarget as HTMLImageElement;
+                      if (target) {
+                        target.src = "/icons/profile.svg";
+                      }
+                    }}
+                    className="object-cover"
+                  />
+                </div>
+                <p className="text-white font-bold text-center">{a.name}</p>
+              </div>
+            ))}
+          </div>
         </div>
       ) : currentPlaylist ? (
         <div className="mt-10">
