@@ -74,6 +74,8 @@ export default function SongInfo() {
 
       if (index > 0) {
         playSong(listToPlay[index - 1].songs, listToPlay[index - 1].artist);
+      } else if(index == 0){
+        playSong(listToPlay[listToPlay.length-1].songs, listToPlay[listToPlay.length-1].artist);
       } else {
         playSong(currentSong!, currentSongArtist);
       }
@@ -95,6 +97,8 @@ export default function SongInfo() {
 
       if (index > -1 && index < listToPlay.length - 1) {
         playSong(listToPlay[index + 1].songs, listToPlay[index + 1].artist);
+      } else if(index == listToPlay.length - 1){
+        playSong(listToPlay[0].songs, listToPlay[0].artist);
       } else {
         playSong(currentSong!, currentSongArtist);
       }

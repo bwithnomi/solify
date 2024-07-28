@@ -61,7 +61,6 @@ export default function Home() {
         new PublicKey(element),
         connection
       );
-      console.log(artist);
 
       if (artist) {
         tempArray.push(artist);
@@ -114,7 +113,6 @@ export default function Home() {
     if (currentPlaylist) {
       setHome(false);
     }
-    console.log(currentPlaylist);
   }, [currentPlaylist]);
 
   useEffect(() => {
@@ -128,7 +126,6 @@ export default function Home() {
     const wallet = new PublicKey(pubkey);
     const ownerPDA = await PDA.getOwnerPDA(wallet);
     const artistPDA = await PDA.getArtistPDA(ownerPDA);
-    console.log(artistPDA.toString());
 
     const songInfoPDA = await PDA.getSongInfoPDA(ownerPDA);
     const account = await connection.getAccountInfo(songInfoPDA);
@@ -154,7 +151,6 @@ export default function Home() {
     }
 
     let listData = SongListModel.deserialize(accountList.data);
-    console.log(accountList);
 
     setSongsLoading(false);
     if (listData) {
