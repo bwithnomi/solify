@@ -56,6 +56,50 @@ export default function SongInfo() {
     return event;
   };
 
+  const playPrevSong = () => {
+    if (isShuffled) {
+      if (shuffledPlaylist.length > 0) {
+        let temp = listToPlay.find(
+          (a) => a.songs.name == shuffledPlaylist[shuffledPlaylist.length - 1]
+        );
+        temp && playSong(temp.songs, temp.artist);
+        shuffledPlaylist.pop();
+      } else {
+        playSong(currentSong!, currentSongArtist);
+      }
+    } else {
+      let index = listToPlay.findIndex(
+        (a) => a.songs.name == currentSong?.name
+      );
+
+      if (index > 0) {
+        playSong(listToPlay[index - 1].songs, listToPlay[index - 1].artist);
+      } else {
+        playSong(currentSong!, currentSongArtist);
+      }
+    }
+  };
+  const playNextSong = () => {
+    if (isShuffled) {
+      let songToPlay = shufflesSong();
+
+      let song = listToPlay.find((a) => a.songs.name == songToPlay);
+
+      if (song) {
+        playSong(song.songs, song.artist);
+      }
+    } else {
+      let index = listToPlay.findIndex(
+        (a) => a.songs.name == currentSong?.name
+      );
+
+      if (index > -1 && index < listToPlay.length - 1) {
+        playSong(listToPlay[index + 1].songs, listToPlay[index + 1].artist);
+      } else {
+        playSong(currentSong!, currentSongArtist);
+      }
+    }
+  };
   const addInterval = () => {
     const resumeAudio = isPlaying;
     if (
@@ -111,21 +155,9 @@ export default function SongInfo() {
 
   const muteAndUnmute = (action: number) => {
     if (audioRef.current) {
-      console.log(audioRef.current.volume);
       audioRef.current.volume = action == 0 ? 0 : 0.1;
-      console.log(audioRef.current.volume);
 
       setAudioVolume(action * 10);
-    }
-  };
-
-  const toggleAudio = () => {
-    if (!isPlaying) {
-      audioRef.current?.play();
-      setIsPlaying(true);
-    } else {
-      audioRef.current?.pause();
-      setIsPlaying(false);
     }
   };
 
@@ -303,7 +335,7 @@ export default function SongInfo() {
                     width="15"
                     height="0"
                     src={`/icons/shuffle-active.png`}
-                    alt="play"
+                    alt="shuffle-active"
                     onClick={() => setIsShuffled(false)}
                   ></Image>
                 </button>
@@ -313,7 +345,7 @@ export default function SongInfo() {
                     width="15"
                     height="0"
                     src={`/icons/shuffle.png`}
-                    alt="play"
+                    alt="shuffle"
                     onClick={() => setIsShuffled(true)}
                   ></Image>
                 </button>
@@ -324,12 +356,23 @@ export default function SongInfo() {
             >
               10-
             </span>
+            {listToPlay.length && repeatOption != "single" && (
+              <button>
+                <Image
+                  width="15"
+                  height="0"
+                  src={`/icons/backward.svg`}
+                  alt="backward"
+                  onClick={() => playPrevSong()}
+                ></Image>
+              </button>
+            )}
             {isPlaying ? (
               <Image
                 width="15"
                 height="0"
                 src={`/icons/pause.svg`}
-                alt="play"
+                alt="pause"
                 onClick={stopAudio}
               ></Image>
             ) : (
@@ -341,6 +384,18 @@ export default function SongInfo() {
                 onClick={playAudio}
               ></Image>
             )}
+            {listToPlay.length && repeatOption != "single" && (
+              <button>
+                <Image
+                  width="15"
+                  height="0"
+                  src={`/icons/forward.svg`}
+                  alt="forward"
+                  onClick={() => playNextSong()}
+                ></Image>
+              </button>
+            )}
+
             <span
               className="text-white text-xs cursor-pointer font-bold font-mono"
               onClick={addInterval}
@@ -353,7 +408,7 @@ export default function SongInfo() {
                   width="15"
                   height="0"
                   src={`/icons/repeat-active.png`}
-                  alt="play"
+                  alt="repeat-active"
                   onClick={() => setRepeatOption(null)}
                 ></Image>
               </button>
@@ -364,7 +419,7 @@ export default function SongInfo() {
                   width="17"
                   height="0"
                   src={`/icons/repeat-one.png`}
-                  alt="play"
+                  alt="repeat-one"
                   onClick={() => setRepeatOption("all")}
                 ></Image>
               </button>
@@ -375,7 +430,7 @@ export default function SongInfo() {
                   width="17"
                   height="0"
                   src={`/icons/repeat.png`}
-                  alt="play"
+                  alt="repeat"
                   onClick={() => setRepeatOption("single")}
                 ></Image>
               </button>

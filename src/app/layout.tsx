@@ -43,7 +43,7 @@ export default async function RootLayout({
                   <div className="col-span-3 col-start-1 row-span-9 row-start-1 overflow-hidden">
                     <Sidebar></Sidebar>
                   </div>
-                  <div className="col-span-9 row-span-9 row-start-1 col-start-4 bg-neutral-900 p-2 overflow-hidden">
+                  <div className="col-span-9 row-span-9 row-start-1 col-start-4 bg-neutral-900 p-2 overflow-y-scroll">
                     {children}
                   </div>
                   <div className="col-span-12 col-start-1 row-span-1 row-start-10">
