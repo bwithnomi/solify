@@ -1,6 +1,8 @@
 "use client";
 
-import { Transaction } from "@solana/web3.js";
+import {
+  Transaction,
+} from "@solana/web3.js";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import { TPlaylist } from "@/dtos/playlist.dto";
@@ -8,6 +10,7 @@ import { useSongPlayer } from "@/context/SongPlayerContext";
 import { TSong } from "@/dtos/song.dto";
 import { Playlist as PlaylistService } from "@/composables/playlist";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { TArtistAccount } from "@/dtos";
 
 interface playlistProps {
   currentPlaylist: TPlaylist;
@@ -29,9 +32,14 @@ const bgClasses = [
 ];
 
 const Playlist = (props: playlistProps) => {
-  const { playSong } = useSongPlayer();
+  const { playSong, setListToPlaySong } = useSongPlayer();
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
+
+  const playPlaylistSongs = (song: TSong, artist: TArtistAccount | null) => {
+    playSong(song, artist);
+    setListToPlaySong(props.currentPlaylist.songs);
+  }
 
   const deleteSong = async (song: TSong) => {
     try {
@@ -139,7 +147,7 @@ const Playlist = (props: playlistProps) => {
                   <td className="text-white px-3 py-1">
                     <button
                       className="bg-white text-black px-2 py-1 rounded-full text-xs"
-                      onClick={() => playSong(item.songs, item.artist || null)}
+                      onClick={() => playPlaylistSongs(item.songs, item.artist || null)}
                     >
                       <Image
                         width="10"

@@ -1,6 +1,6 @@
 import { useSongPlayer } from "@/context/SongPlayerContext";
 import { TArtistAccount } from "@/dtos/artist.dto";
-import { TSongWithList } from "@/dtos/song.dto";
+import { TSong, TSongWithList } from "@/dtos/song.dto";
 import Image from "next/image";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { Dialog, DialogPanel, DialogTitle } from "@headlessui/react";
@@ -12,16 +12,17 @@ import {
   PublicKey,
   Transaction
 } from "@solana/web3.js";
+import { TPlaylistSong } from "@/dtos/playlist.dto";
 
 interface SongsList {
   songs: TSongWithList[];
-  artist: TArtistAccount | undefined;
+  artist: TArtistAccount;
   artistKey: PublicKey | null;
   searchedWallet: string;
 }
 
 const SongList = ({ songs, artist, artistKey,searchedWallet }: SongsList) => {
-  const { playSong } = useSongPlayer();
+  const { playSong,setListToPlaySong } = useSongPlayer();
   const { allPlaylists } = usePlaylist();
   const { publicKey, sendTransaction } = useWallet();
   const { connection } = useConnection();
@@ -32,6 +33,8 @@ const SongList = ({ songs, artist, artistKey,searchedWallet }: SongsList) => {
   const addSongToPlaylist = async (playlist: string) => {
     try {
       if (itemToAdd && artistKey && publicKey) {
+        console.log(artistKey, publicKey);
+        
         const transaction = new Transaction();
         let instruction = await playlistService.addSongToPlaylist(
           itemToAdd,
@@ -69,6 +72,15 @@ const SongList = ({ songs, artist, artistKey,searchedWallet }: SongsList) => {
     }
   };
 
+
+  const playPlaylistSongs = (song: TSong, artist: TArtistAccount) => {
+    playSong(song, artist);
+    let listToPlay: TPlaylistSong[] = [];
+    listToPlay = songs.map(a => {
+      return {songs: {name: a.name, url: a.url}, artist}
+    })
+    setListToPlaySong(listToPlay);
+  }
   function open(song: TSongWithList) {
     setItemToAdd(song);
     setIsOpen(true);
@@ -142,7 +154,7 @@ const SongList = ({ songs, artist, artistKey,searchedWallet }: SongsList) => {
 
             <button
               className="bg-white text-black px-2 py-1 rounded-full text-xs"
-              onClick={() => playSong(item, artist || null)}
+              onClick={() => playPlaylistSongs(item, artist)}
             >
               <Image
                 width="10"

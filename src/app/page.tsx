@@ -269,7 +269,7 @@ export default function Home() {
           ) : (
             <SongList
               songs={songs}
-              artist={artist}
+              artist={artist!}
               artistKey={artistKey}
               searchedWallet={debouncedValue}
             />

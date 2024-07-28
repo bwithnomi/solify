@@ -11,12 +11,22 @@ import React, {
   useRef,
   useState,
 } from "react";
+import { TPlaylistSong } from "@/dtos/playlist.dto";
 const songInfoImageStyle: CSSProperties = {
   objectFit: "cover",
 };
 
 export default function SongInfo() {
-  const { currentSong, currentSongArtist } = useSongPlayer();
+  const {
+    currentSong,
+    currentSongArtist,
+    listToPlay,
+    setListToPlaySong,
+    playSong,
+  } = useSongPlayer();
+  const [shuffledPlaylist, setShuffledPlaylist] = useState<string[]>([]);
+  const [repeatOption, setRepeatOption] = useState<string | null>();
+  const [isShuffled, setIsShuffled] = useState<boolean>(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState<boolean>(false);
   const [progress, setProgress] = useState<number>(0.0);
@@ -54,6 +64,17 @@ export default function SongInfo() {
     ) {
       stopAudio();
       audioRef.current.currentTime = audioRef.current.duration;
+      if (repeatOption == "single") {
+        playAudio();
+      } else if (repeatOption == "all") {
+        let songToPlay = shufflesSong();
+
+        let song = listToPlay.find((a) => a.songs.name == songToPlay);
+
+        if (song) {
+          playSong(song.songs, song.artist);
+        }
+      }
     } else if (
       audioRef.current &&
       audioRef.current.currentTime < audioRef.current.duration
@@ -117,6 +138,12 @@ export default function SongInfo() {
     audioRef.current?.play();
     setIsPlaying(true);
   };
+  useEffect(() => {
+    setShuffledPlaylist([]);
+  }, [isShuffled]);
+  useEffect(() => {
+    setShuffledPlaylist([]);
+  }, [listToPlay]);
 
   useEffect(() => {
     const handleLoadedMetadata = () => {
@@ -173,9 +200,63 @@ export default function SongInfo() {
     };
   }, [currentSong]);
 
+  const shufflesSong = () => {
+    if (currentSong) {
+      let initialList = [...shuffledPlaylist];
+      initialList.push(currentSong.name);
+      setShuffledPlaylist([...initialList]);
+      if (initialList.length == listToPlay.length - 1) {
+        const remainingSongs = listToPlay.filter(
+          (a) => !initialList.includes(a.songs.name)
+        );
+        return remainingSongs[0].songs.name;
+      } else if (initialList.length == listToPlay.length) {
+        initialList = [currentSong.name];
+        setShuffledPlaylist([...initialList]);
+        const remainingSongs = listToPlay.filter(
+          (a) => !initialList.includes(a.songs.name)
+        );
+        return remainingSongs[Math.floor(Math.random() * remainingSongs.length)]
+          .songs.name;
+      } else {
+        const remainingSongs = listToPlay.filter(
+          (a) => !initialList.includes(a.songs.name)
+        );
+        return remainingSongs[Math.floor(Math.random() * remainingSongs.length)]
+          .songs.name;
+      }
+    }
+
+    return "";
+  };
+
   useEffect(() => {
     if (audioRef.current?.ended) {
-      stopAudio();
+      if (listToPlay.length && repeatOption == "all") {
+        let index = listToPlay.findIndex(
+          (a) => a.songs.name == currentSong?.name
+        );
+
+        if (isShuffled) {
+          let songToPlay = shufflesSong();
+
+          let song = listToPlay.find((a) => a.songs.name == songToPlay);
+
+          if (song) {
+            playSong(song.songs, song.artist);
+          }
+        } else if (index > -1 && index < listToPlay.length - 1) {
+          playSong(listToPlay[index + 1].songs, listToPlay[index + 1].artist);
+        } else if (index == listToPlay.length - 1) {
+          playSong(listToPlay[0].songs, listToPlay[0].artist);
+        } else {
+          stopAudio();
+        }
+      } else if (repeatOption == "single") {
+        playAudio();
+      } else {
+        stopAudio();
+      }
     }
   }, [progress]);
 
@@ -204,7 +285,7 @@ export default function SongInfo() {
         </div>
       </div>
       {currentSong ? (
-        <div className="basis-1/3 flex flex-col justify-center gap-1">
+        <div className="basis-1/3 flex flex-col justify-center gap-2">
           <audio
             ref={audioRef}
             onTimeUpdate={(event) =>
@@ -215,6 +296,28 @@ export default function SongInfo() {
             Your browser does not support the audio element.
           </audio>
           <div className="flex flex-row justify-center h-5 gap-8 items-center">
+            {listToPlay.length &&
+              (isShuffled ? (
+                <button>
+                  <Image
+                    width="15"
+                    height="0"
+                    src={`/icons/shuffle-active.png`}
+                    alt="play"
+                    onClick={() => setIsShuffled(false)}
+                  ></Image>
+                </button>
+              ) : (
+                <button>
+                  <Image
+                    width="15"
+                    height="0"
+                    src={`/icons/shuffle.png`}
+                    alt="play"
+                    onClick={() => setIsShuffled(true)}
+                  ></Image>
+                </button>
+              ))}
             <span
               className="text-white text-xs cursor-pointer font-bold font-mono"
               onClick={decreaseInterval}
@@ -244,6 +347,39 @@ export default function SongInfo() {
             >
               +10
             </span>
+            {listToPlay.length && repeatOption == "all" && (
+              <button className="w-7">
+                <Image
+                  width="15"
+                  height="0"
+                  src={`/icons/repeat-active.png`}
+                  alt="play"
+                  onClick={() => setRepeatOption(null)}
+                ></Image>
+              </button>
+            )}
+            {listToPlay.length && repeatOption == "single" && (
+              <button className="w-7">
+                <Image
+                  width="17"
+                  height="0"
+                  src={`/icons/repeat-one.png`}
+                  alt="play"
+                  onClick={() => setRepeatOption("all")}
+                ></Image>
+              </button>
+            )}
+            {listToPlay.length && repeatOption == null && (
+              <button className="w-7">
+                <Image
+                  width="17"
+                  height="0"
+                  src={`/icons/repeat.png`}
+                  alt="play"
+                  onClick={() => setRepeatOption("single")}
+                ></Image>
+              </button>
+            )}
           </div>
           <div className="flex flex-row items-center gap-2">
             <p className="text-white text-xs w-10 text-center">
