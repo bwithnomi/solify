@@ -169,7 +169,7 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-full flex-col py-0 px-4 overflow-y-scroll">
+    <main className="flex min-h-full flex-col py-0 px-4">
       <div className="flex flex-row gap-2">
         <div className="p-4 bg-neutral-700 rounded-md basis-1/2">
           <WalletBar />
