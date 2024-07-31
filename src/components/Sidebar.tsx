@@ -293,6 +293,7 @@ export default function Sidebar() {
                         setSubmitting(true);
                         await createFirstPlaylist(values.name);
                         setSubmitting(false);
+                        closePlaylistModal()
                       }}
                     >
                       {({ isSubmitting }) => (
@@ -395,6 +396,7 @@ export default function Sidebar() {
                           });
                         await uploadNewSong({ name: values.name, song: cid });
                         setSubmitting(false);
+                        close()
                       }}
                     >
                       {({ isSubmitting }) => (

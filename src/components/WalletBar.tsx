@@ -234,6 +234,7 @@ export default function WalletBar() {
                           cid,
                           values.description
                         );
+                        close()
                       }}
                     >
                       {({ isSubmitting }) => (

@@ -33,7 +33,6 @@ const SongList = ({ songs, artist, artistKey,searchedWallet }: SongsList) => {
   const addSongToPlaylist = async (playlist: string) => {
     try {
       if (itemToAdd && artistKey && publicKey) {
-        console.log(artistKey, publicKey);
         
         const transaction = new Transaction();
         let instruction = await playlistService.addSongToPlaylist(
@@ -55,7 +54,7 @@ const SongList = ({ songs, artist, artistKey,searchedWallet }: SongsList) => {
           progress: undefined,
           theme: "dark",
         });
-        
+        close()
       }
     } catch (error) {
         toast.error("Error sending transaction", {
