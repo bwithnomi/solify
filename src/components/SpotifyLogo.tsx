@@ -3,5 +3,5 @@ const imageStyle = {
     fill: "red",
 }
 export function SidebarLogo () {
-    return <Image src={`/spotify.svg`} width="78" height="24" style={imageStyle} alt="logo"/>
+    return <Image src={`/solify-ls.png`} width="78" height="24" style={imageStyle} alt="logo"/>
 }

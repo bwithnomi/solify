@@ -360,7 +360,7 @@ export default function SongInfo() {
             >
               10-
             </span>
-            {listToPlay.length && repeatOption != "single" && (
+            {listToPlay.length && (
               <button>
                 <Image
                   width="15"
@@ -388,7 +388,7 @@ export default function SongInfo() {
                 onClick={playAudio}
               ></Image>
             )}
-            {listToPlay.length && repeatOption != "single" && (
+            {listToPlay.length && (
               <button>
                 <Image
                   width="15"
